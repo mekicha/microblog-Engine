@@ -24,3 +24,6 @@ MAIL_PASSWORD = None
 
 # administrator list
 ADMINS =['emeka.icha@gmail.com']
+
+#pagination
+POSTS_PER_PAGE = 5
