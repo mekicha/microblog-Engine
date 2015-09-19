@@ -10,17 +10,29 @@
     <script src="http://code.jquery.com/jquery-latest.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/static/css/page.css">
+    <script src="/static/js/moment.js"></script>
   </head>
-  <body class="container">
-    <div class="navbar">Microblog: <a href="{{ url_for('index') }}">Home</a>
-    {% if g.user.is_authenticated() %}
-    | <a href="{{ url_for('user', nickname = g.user.nickname) }}">Your Profile </a>
-    | <form style="display:inline;" action="{{ url_for('search') }}" method = "post" name="search">{{g.search_form.hidden_tag() }}{{ g.search_form.search(size=20)}}<input type="Submit" value="search"></form>
-    | <a href="{{ url_for('logout') }}">Logout</a>
+  <body>
+  
+  <div class="container">
+  <div class="header clearfix">
+  <nav>
+    <ul class="nav nav-pills pull-right">
+    <li role="presentation"><a href="{{ url_for('index') }}">Home</a></li>
+    {%  if not g.user.is_authenticated() %}
+    <li role="presentation"><a href="#">About</a></li>
+    <li role="presentation"><a href="#">Contact</a></li>
     {% endif %}
-    
+    {% if g.user.is_authenticated() %}
+    <li role="presentation"><a href="{{ url_for('user', nickname = g.user.nickname) }}">Your Profile </a></li>
+    <form class="navbar-form navbar-left" role="search" action="{{ url_for('search') }}" method = "post" name="search">{{g.search_form.hidden_tag() }}{{ g.search_form.search(size=20)}}<input type="Submit" value="search"></form>
+    <li role="presentation"><a href="{{ url_for('logout') }}">Logout</a></li>
+    {% endif %}
+    </ul>
+    </nav>
+    <h3 class="text-muted">MekichaBlog</h3>
     </div>
-    <hr>
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <ul>
