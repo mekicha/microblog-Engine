@@ -2,7 +2,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="form-signin-heading">Please Sign In</h2>
+<h2 class="form-signin-heading">See you again soon</h2>
 <div class="container">
 <form  class="form-signin" action="{{url_for('login')}}" method="post" name="login">
     {{ form.hidden_tag() }}
@@ -20,9 +20,5 @@
     <p class="checkbox">{{ form.remember_me }} Remember Me</p>
     <button class="btn btn-primary signin-button" type="submit" size="30">Sign in</button>
 </form>
-Don't have an account yet?
-<a href="{{url_for('register')}}">Register</a>
-
-
 
 {% endblock %}

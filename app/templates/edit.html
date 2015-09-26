@@ -7,9 +7,9 @@
       {{form.hidden_tag()}}
       <table>
           <tr>
-              <td>Your nickname:</td>
+              <td>Your Username:</td>
         <td>
-            {{ form.nickname(size=24) }}
+            {{ form.username(size=24) }}
             {% for error in form.errors.nickname %}
             <br><span style="color: red;">[{{ error }}]</span>
             {% endfor %}

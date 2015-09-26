@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, session, url_for, request, g
 from app import app, db, lm, oid 
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from .models import User, Post
-from .forms import LoginForm, EditForm, PostForm, SearchForm
+from .forms import LoginForm, EditForm, PostForm, SearchForm, RegisterForm
 from datetime import datetime
 from config import POSTS_PER_PAGE
 from .emails import follower_notification
@@ -42,58 +42,53 @@ def index(page=1):
 
 
     
-
+@app.route('/about')
+def about():
+	return render_template('about.html')
 
 @app.route('/login', methods = ['GET', 'POST'])
-@oid.loginhandler
 def login():
 	if g.user is not None and g.user.is_authenticated():
 		return redirect(url_for('index'))
 	form = LoginForm()
 	if form.validate_on_submit():
+		flash('Successfully logged in as %s' %form.email.data)
 		session['remember_me'] = form.remember_me.data
-		return oid.try_login(form.openid.data, ask_for = ['nickname','email'])	
+		session['user_id'] = form.user.id
+		return redirect(url_for('index'))	
 	return render_template('login.html',
 		                   title = 'Sign In',
-		                   form = form,
-		                   providers = app.config['OPENID_PROVIDERS'])
-@oid.after_login
-def after_login(resp):
-    if resp.email is None or resp.email == "":
-        flash('Invalid login. Please try again.')
-        return redirect(url_for('login'))
-    user = User.query.filter_by(email=resp.email).first()
-    if user is None:
-        nickname = resp.nickname
-        if nickname is None or nickname == "":
-            nickname = resp.email.split('@')[0]
-        nickname = User.make_unique_nickname(nickname)
-        user = User(nickname=nickname, email=resp.email)
-        db.session.add(user)
-        db.session.commit()
-        # make the user follow him/herself
-        db.session.add(user.follow(user))
-        db.session.commit()
-    remember_me = False
-    if 'remember_me' in session:
-        remember_me = session['remember_me']
-        session.pop('remember_me', None)
-    login_user(user, remember=remember_me)
-    return redirect(request.args.get('next') or url_for('index'))
+		                   form = form)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+	form = RegisterForm()
+	if form.validate_on_submit():
+		user = User(form.username.data, form.email.data, form.password.data)
+		db.session.add(user)
+		db.session.commit()
+		session['user_id'] = user.id
+		flash('You are now Successfully registered')
+		return redirect(url_for('index'))
+	return render_template('register.html',
+		                  form=form)
+
 
 @app.route('/logout')
 def logout():
 	logout_user()
-	return redirect(url_for('index'))
+	form =LoginForm()
+	return render_template('logout.html',
+		                   form=form)
 
 
-@app.route('/user/<nickname>')
-@app.route('/user/<nickname>/<int:page>')
+@app.route('/user/<username>')
+@app.route('/user/<username>/<int:page>')
 @login_required
-def user(nickname, page=1):
-	user = User.query.filter_by(nickname = nickname).first()
+def user(username, page=1):
+	user = User.query.filter_by(username = username).first()
 	if user == None:
-		flash('User %s not found.' %nickname)
+		flash('User %s not found.' %username)
 		return redirect(url_for('index'))
 	posts = user.posts.paginate(page, POSTS_PER_PAGE, False)
 	return render_template('user.html',
@@ -104,57 +99,57 @@ def user(nickname, page=1):
 @app.route('/edit', methods = ['GET', 'POST'])
 @login_required
 def edit():
-	form = EditForm(g.user.nickname)
+	form = EditForm(g.user.username)
 	if form.validate_on_submit():
-		g.user.nickname = form.nickname.data
+		g.user.username = form.username.data
 		g.user.about_me = form.about_me.data
 		db.session.add(g.user)
 		db.session.commit()
 		flash('Your changes have been saved.')
 		return redirect(url_for('edit'))
 	else:
-		form.nickname.data = g.user.nickname
+		form.username.data = g.user.username
 		form.about_me.data = g.user.about_me
 	return render_template('edit.html', form = form)
 
-@app.route('/follow/<nickname>')
+@app.route('/follow/<username>')
 @login_required
-def follow(nickname):
-	user = User.query.filter_by(nickname=nickname).first()
+def follow(username):
+	user = User.query.filter_by(username=username).first()
 	if user is None:
-		flash('User %s not found.' % nickname)
+		flash('User %s not found.' % username)
 		return redirect(url_for('index'))
 	if user == g.user:
 		flash('You can\'t follow yourself!')
-		return redirect(url_for('user', nickname=nickname))
+		return redirect(url_for('user', username=username))
 	u = g.user.follow(user)
 	if u is None:
-		flash('cannot follow' + nickname + '.')
-		return redirect(url_for('user', nickname=nickname))
+		flash('cannot follow' + username + '.')
+		return redirect(url_for('user', username=username))
 	db.session.add(u)
 	db.session.commit()
-	flash('You are now following ' + nickname + '!')
+	flash('You are now following ' + username + '!')
 	follower_notification(user, g.user)
-	return redirect(url_for('user', nickname=nickname))
+	return redirect(url_for('user', username=username))
 
-@app.route('/unfollow/<nickname>')
+@app.route('/unfollow/<username>')
 @login_required
-def unfollow(nickname):
-	user = User.query.filter_by(nickname=nickname).first()
+def unfollow(username):
+	user = User.query.filter_by(username=username).first()
 	if user is None:
-		flash('User %s not  found.' % nickname)
+		flash('User %s not  found.' % username)
 		return redirect(url_for('index'))
 	if user == g.user:
 		flash('You can\t unfollow yourself!')
-		return redirect(url_for('user', nickname=nickname))
+		return redirect(url_for('user', username=username))
 	u = g.user.unfollow(user)
 	if u is None:
-		flash('Cannot unfollow ' + nickname + '.')
-		return redirect(url_for('user', nickname=nickname))
+		flash('Cannot unfollow ' + username + '.')
+		return redirect(url_for('user', username=username))
 	db.session.add(u)
 	db.session.commit()
-	flash('You unfollowed ' + nickname + '.')
-	return redirect(url_for('user', nickname=nickname))
+	flash('You unfollowed ' + username + '.')
+	return redirect(url_for('user', username=username))
 
 @app.route('/search', methods=['POST'])
 @login_required

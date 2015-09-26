@@ -21,11 +21,11 @@
     <ul class="nav nav-pills pull-right">
     <li role="presentation"><a href="{{ url_for('index') }}">Home</a></li>
     {%  if not g.user.is_authenticated() %}
-    <li role="presentation"><a href="#">About</a></li>
+    <li role="presentation"><a href="{{url_for('about')}}">About</a></li>
     <li role="presentation"><a href="#">Contact</a></li>
     {% endif %}
     {% if g.user.is_authenticated() %}
-    <li role="presentation"><a href="{{ url_for('user', nickname = g.user.nickname) }}">Your Profile </a></li>
+    <li role="presentation"><a href="{{ url_for('user', username = g.user.username) }}">Your Profile </a></li>
     <form class="navbar-form navbar-left" role="search" action="{{ url_for('search') }}" method = "post" name="search">{{g.search_form.hidden_tag() }}{{ g.search_form.search(size=20)}}<input type="Submit" value="search"></form>
     <li role="presentation"><a href="{{ url_for('logout') }}">Logout</a></li>
     {% endif %}

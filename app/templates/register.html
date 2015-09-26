@@ -1,0 +1,35 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Please Register</h2>
+<div class="container">
+<form  class="form-signin" action="" method="post" name="register">
+    {{ form.hidden_tag() }}
+    <br>
+        {{ form.username(autofocus=true, required=true,placeholder="username",size=30) }}
+        {% for error in form.username.errors %}
+          <span style="color: red;">[{{error}}]</span>
+        {% endfor %}<br>
+        <br>
+        {{ form.email(placeholder="Email address", size=30)}}
+        {% for error in form.email.errors %}
+        <span style="color: red;">[{{error}}]</span>
+        {% endfor %}
+        <br>
+        <br>
+        {{form.password(placeholder="Password", size=30)}}
+        <br>
+        <br>
+    <button class="btn btn-primary signin-button" type="submit" size="30">Register</button>
+</form>
+Have an account already?
+<a href="{{url_for('login')}}">Log in</a>
+
+
+
+
+
+
+
+{% endblock %}
