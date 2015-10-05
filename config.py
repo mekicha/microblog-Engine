@@ -25,7 +25,7 @@ MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
 MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
 
 # administrator list
-ADMINS =['emeka.icha@gmail.com']
+
 
 #pagination
 POSTS_PER_PAGE = 5
